@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mimo Developer Platform</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"> <!-- Font Awesome CSS -->
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'SF Pro', 'Helvetica Neue', 'Helvetica', Arial, sans-serif; /* Apple's San Francisco font */
+    overflow: hidden;
+    background-color: #f6f9fc; /* Light gray background */
+    color: #333; /* Text color */
+    transition: background-color 0.5s, color 0.5s;
+  }
+  
+  #canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+  }
+
+  .top-right-menu {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    font-size: 24px;
+  }
+
+  .dropdown {
+    position: relative;
+    cursor: pointer;
+    color: #401664; /* NatWest logo blue color */
+    font-size: 14px; /* Reduced font size */
+    display: inline-block;
+  }
+
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    top: calc(100% + 1px);
+    right: 0;
+    background-color: #fff;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+    min-width: 100px;
+    padding: 5px 0;
+    border-radius: 4px;
+  }
+
+  .dropdown:hover .dropdown-content {
+    display: block;
+  }
+
+  .dropdown-item {
+    padding: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .dropdown-item:hover {
+    background-color: #f0f0f0;
+  }
+
+  #dark-mode-toggle {
+    cursor: pointer;
+  }
+
+  #dark-mode-toggle:hover {
+    color: #999; /* Moon icon color on hover */
+  }
+
+  /* Dark Mode Styles */
+  body.dark-mode {
+    background-color: #401664; /* Dark gray background */
+    color: #ccc; /* Light text color */
+  }
+
+  /* Light Yellow Color */
+  .light-yellow {
+    color: #ffcc00; /* Light yellow color */
+  }
+
+  /* Container Styles */
+  .container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    max-width: 80%; /* Limit width for responsiveness */
+  }
+
+  /* Title Styles */
+  .title {
+    font-family: 'SF Pro', 'Helvetica Neue', 'Helvetica', Arial, sans-serif; /* Apple's San Francisco font */
+    font-size: 50px;
+    color: #401664; /* NatWest logo blue color */
+    margin-bottom: 30px;
+    transition: color 0.5s; /* Added transition */
+  }
+
+  /* Description Styles */
+  .description {
+    font-size: 16px;
+    color: #4b5a6c; /* NatWest logo gray color */
+    line-height: 1.5;
+    margin-bottom: 30px;
+    max-width: 600px; /* Limit width for responsiveness */
+    margin: auto;
+    transition: color 0.5s; /* Added transition */
+  }
+
+    /* Override Title and Description Colors in Dark Mode */
+  body.dark-mode .title {
+    color: #ccc; /* Light gray color for title in dark mode */
+  }
+
+  body.dark-mode .description{
+    color: #aaa; /* Light gray color for description in dark mode */
+  }
+
+  /* Buttons Container Styles */
+  .buttons-container {
+    display: none; /* Initially hide buttons */
+    justify-content: center;
+    align-items: center;
+    gap: 20px; /* Gap between buttons */
+    margin-top: 20px; /* Space between description and buttons */
+  }
+
+  /* Button Styles */
+  .button {
+    width: 200px; /* Fixed width */
+    height: 200px; /* Fixed height */
+    background-color: #ffffff; /* White background */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Soft shadow */
+    border-radius: 8px; /* Rounded corners */
+    text-align: center;
+    padding: 20px;
+    transition: box-shadow 0.3s;
+    cursor: pointer;
+  }
+
+  .button img {
+    width: 80px;
+    height: 80px;
+    /*border-radius: 50%;*/
+    margin-bottom: 20px;
+    object-fit: contain;
+  }
+
+  .button p {
+    font-size: 15px;
+    color: #4b5a6c; /* NatWest logo gray color */
+    margin: 1;
+  }
+
+  .button:hover {
+    box-shadow: 2px 6px 8px rgba(0, 0, 0, 0.5); /* Slightly stronger shadow on hover */
+  }
+
+  /* Media Query for smaller screens */
+  @media screen and (max-width: 768px) {
+    .title {
+      font-size: 24px; /* Reduced font size */
+    }
+
+    .description {
+      font-size: 14px; /* Reduced font size */
+    }
+
+    .button {
+      width: 150px; /* Reduced button width */
+      height: 150px; /* Reduced button height */
+    }
+
+    .button img {
+      width: 60px; /* Reduced image size */
+      height: 60px; /* Reduced image size */
+    }
+
+    .button p {
+      font-size: 12px; /* Reduced font size */
+    }
+
+    .buttons-container {
+      flex-direction: column; /* Arrange buttons vertically */
+    }
+  }
+  .logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px; /* Adjust as needed */
+  }
+
+  .logo {
+    width: 150px; /* Adjust size as needed */
+    height: auto; /* Maintain aspect ratio */
+    border-radius: 50%; /* Make the image circular */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.5); /* Apply shadow effect */
+    background-color: transparent; /* Set background to transparent */
+  }
+
+  /* Override box shadow in dark mode */
+  body.dark-mode .logo {
+    box-shadow: 0px 4px 6px rgba(255, 255, 255, 0.5); /* Lighter shadow color in dark mode */
+  }
+
+  body.dark-mode .button {
+    background-color: #DEDDDD; /* Dark background color */
+  } 
+
+  body.dark-mode .button:hover {
+    box-shadow: 2px 6px 8px rgba(255, 255, 255, 0.5); /* Slightly stronger shadow on hover */
+  }
+
+  .time_wrapper {
+    color: #401664; /* NatWest logo blue color */
+    font-size: 14px; /* Reduced font size */
+    display: flex; /* Use flexbox for layout */
+    justify-content: space-between; /* Space items evenly */
+  }
+
+  body.dark-mode .time_wrapper{
+    color: #aaa; /* Light gray color for description in dark mode */
+  }
+
+  body.dark-mode .dropdown{
+    color: #aaa; /* Light gray color for description in dark mode */
+  }
+
+
+
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div class="top-right-menu">
+  <div class="time_wrapper">
+    <div id="london-time" style="padding-left: 10px;">London Time : <span id="london-clock"></span></div>
+    <div id="india-time" style="padding-left: 10px;">India Time : <span id="india-clock"></span></div>
+  </div>
+  <div class="dropdown">
+    <span>Environments</span>
+    <div class="dropdown-content">
+      <div class="dropdown-item">ftdevd2</div>
+      <div class="dropdown-item">sandpit</div>
+      <div class="dropdown-item">kappa2</div>
+    </div>
+  </div>
+  <div id="dark-mode-toggle">
+    <i class="fas fa-moon"></i> <!-- Moon icon -->
+  </div>
+</div>
+<div class="container">
+  <div class="logo-container">
+    <img src="{{ url_for('static', filename='logo_l.gif') }}" alt="Logo" class="logo">
+  </div>
+  <div class="title">
+    Mimo Developer Platform
+  </div>
+  <div class="description">
+    Welcome to the Mimo Developer Platform! This platform provides developers with tools and resources to build innovative solutions, collaborate with others, and accelerate their development process.
+  </div>
+  <div class="buttons-container" id="buttons-container">
+    <!-- Buttons will be dynamically added here -->
+        <!-- Jupyter Lab button -->
+    <div class="button" id="jupyter-lab-button">
+      <img src="static/button/jupyter.png" alt="Jupyter Lab">
+      <p><strong>Jupyter Lab</strong></p>
+      <p>Launch Jupyter Lab.</p>
+    </div>
+    <!-- Insight Portal button -->
+    <div class="button" id="insight-portal-button">
+      <img src="static/button/portal.png" alt="Insight Portal">
+      <p><strong>Insight Portal</strong></p>
+      <p>Launch Insight Portal.</p>
+    </div>
+    <!-- Airflow button -->
+    <div class="button" id="airflow-button">
+      <img src="static/button/airflow.svg" alt="Airflow">
+      <p><strong>Airflow</strong></p>
+      <p>Launch Airflow for the environment.</p>
+    </div>
+</div>
+</div>
+
+<script>
+  // Dark Mode Toggle
+  const darkModeToggle = document.getElementById('dark-mode-toggle');
+  const body = document.body;
+  const logo = document.querySelector('.logo');
+
+  darkModeToggle.addEventListener('click', function() {
+    body.classList.toggle('dark-mode');
+    darkModeToggle.classList.toggle('light-yellow'); // Toggle light yellow color
+    const isDarkMode = body.classList.contains('dark-mode');
+        // Update logo image source based on dark mode state
+    if (isDarkMode) {
+      logo.src = "static/logo_d.gif"; // Path to the dark mode logo image
+    } else {
+      logo.src = "static/logo_l.gif"; // Path to the light mode logo image
+    }
+  });
+
+
+  // Dropdown Menu
+  const dropdown = document.querySelector('.dropdown');
+  const dropdownContent = document.querySelector('.dropdown-content');
+
+  dropdown.addEventListener('click', function() {
+    event.stopPropagation(); // Prevent event from bubbling up
+    dropdownContent.classList.toggle('show');
+  });
+
+  // Close dropdown when clicking outside
+  window.addEventListener('click', function(event) {
+    if (!dropdown.contains(event.target)) {
+      dropdownContent.classList.remove('show');
+    }
+  });
+
+  // Dropdown Item Selection
+  const dropdownItems = document.querySelectorAll('.dropdown-item');
+  dropdownItems.forEach(item => {
+    item.addEventListener('click', function() {
+      const selectedValue = this.textContent;
+      console.log('Selected:', selectedValue); // You can handle the selected value here
+      dropdown.querySelector('span').textContent = selectedValue; // Update dropdown label
+      
+      // Show buttons when environment is selected
+      document.querySelector('.buttons-container').style.display = 'flex';
+
+      // Update Airflow button text based on selected environment
+      document.querySelector('.button:nth-child(3) p:nth-child(3)').textContent = `Launch ${selectedValue} Airflow.`;
+
+      dropdownContent.classList.remove('show'); // Hide dropdown content
+      
+    });
+  });
+
+  // Particle Animation
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  let particlesArray;
+
+  // Set canvas size
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  // Mouse position
+  let mouse = {
+    x: null,
+    y: null,
+    radius: 100
+  };
+
+  // Mouse move event
+  window.addEventListener('mousemove', function(event) {
+    mouse.x = event.x;
+    mouse.y = event.y;
+  });
+
+  // Create particle
+  class Particle {
+    constructor() {
+      this.x = Math.random() * canvas.width;
+      this.y = Math.random() * canvas.height;
+      this.size = Math.random() * 1.5 + 0.5; // Smaller particles
+      this.baseX = this.x;
+      this.baseY = this.y;
+      this.density = (Math.random() * 30) + 1;
+      this.speedX = Math.random() * 0.6 - 0.3; // Slower particle movement
+      this.speedY = Math.random() * 0.6 - 0.3; // Slower particle movement
+    }
+    update() {
+      let dx = mouse.x - this.x;
+      let dy = mouse.y - this.y;
+      let distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance < mouse.radius) {
+        let dampingFactor = 1 - (distance / mouse.radius);
+        this.speedX += dx / 500 * dampingFactor; // Reduced effect of mouse movement
+        this.speedY += dy / 500 * dampingFactor; // Reduced effect of mouse movement
+      }
+      this.x += this.speedX;
+      this.y += this.speedY;
+      if (this.x < 0 || this.x > canvas.width) {
+        this.speedX = -this.speedX;
+      }
+      if (this.y < 0 || this.y > canvas.height) {
+        this.speedY = -this.speedY;
+      }
+    }
+    draw() {
+      ctx.fillStyle = body.classList.contains('dark-mode') ? '#ccc' : '#401664';  // NatWest logo blue color
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    connect(particles) {
+      for (let i = 0; i < particles.length; i++) {
+        const distance = Math.sqrt(
+          (this.x - particles[i].x) ** 2 + (this.y - particles[i].y) ** 2
+        );
+        if (distance < 60) { // Adjusted distance threshold
+          ctx.strokeStyle = body.classList.contains('dark-mode') ? '#4A4A4A' : 'rgba(64, 22, 100, 0.1)'; // NatWest logo blue color, thinner lines
+          ctx.lineWidth = 0.2; // Thinner lines
+          ctx.beginPath();
+          ctx.moveTo(this.x, this.y);
+          ctx.lineTo(particles[i].x, particles[i].y);
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  // Create particles
+  function init() {
+    particlesArray = [];
+    for (let i = 0; i < 500; i++) { // Reduced number of particles
+      particlesArray.push(new Particle());
+    }
+  }
+
+  // Animation loop
+  function animate() {
+    requestAnimationFrame(animate);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let i = 0; i < particlesArray.length; i++) {
+      particlesArray[i].update();
+      particlesArray[i].draw();
+      particlesArray[i].connect(particlesArray);
+    }
+  }
+
+  init();
+  animate();
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // AJAX function to launch Jupyter Lab
+    document.getElementById('jupyter-lab-button').addEventListener('click', function() {
+      console.log('Launching Jupyter Lab...');
+      launchService('/launch_jupyter_lab');
+    });
+
+    // AJAX function to launch Insight Portal
+    document.getElementById('insight-portal-button').addEventListener('click', function() {
+      console.log('Launching Insight Portal...');
+      launchService('/launch_insight_portal');
+    });
+
+    // AJAX function to launch Airflow
+    document.getElementById('airflow-button').addEventListener('click', function() {
+      console.log('Launching Airflow...');
+      // Get the selected environment from the dropdown
+      var selectedEnvironment = document.querySelector('.dropdown span').textContent;
+      // Launch Airflow with the selected environment
+      launchService('/launch_airflow/' + selectedEnvironment);
+    });
+  });
+
+  // Function to send AJAX request to launch a service
+  function launchService(url) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        console.log('Service launched successfully.');
+        window.open(xhr.responseText); // Open the response URL in a new window
+      } else {
+        console.log('Error launching service.');
+      }
+    };
+    xhr.onerror = function() {
+      console.error('Request failed.');
+    };
+    xhr.send();
+  }
+
+
+  // Function to update the clock display
+  function updateClock(clockElement, timezoneOffset) {
+    const now = new Date();
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const time = new Date(utc + (3600000 * timezoneOffset));
+    const hours = time.getHours().toString().padStart(2, '0');
+    const minutes = time.getMinutes().toString().padStart(2, '0');
+    const seconds = time.getSeconds().toString().padStart(2, '0');
+    const currentTime = `${hours}:${minutes}:${seconds}`;
+    clockElement.textContent = currentTime;
+  }
+
+  // Update London time every second
+  setInterval(() => {
+    updateClock(document.getElementById('london-clock'), 0);
+  }, 1000);
+
+  // Update India time every second
+  setInterval(() => {
+    updateClock(document.getElementById('india-clock'), 5.5); // India's time zone offset is UTC+5.5
+  }, 1000);
+
+
+</script>
+</body>
+</html>
